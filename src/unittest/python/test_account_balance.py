@@ -20,7 +20,7 @@ class TestCalculateBalance(unittest.TestCase):
     def test_valid_iban_not_found(self):
         # TC4
         with self.assertRaises(AccountManagementException):
-            calculate_balance("ES9820385778983000760236")
+            calculate_balance("ES4221004520611234567891")
 
     def test_valid_iban_sum_error(self):
         # TC5
