@@ -4,6 +4,7 @@ import re
 import os
 from datetime import datetime, timezone
 from account_management_exception import AccountManagementException
+from account_manager import AccountManager
 
 class TransferRequest:
     TRANSFER_FILE = "transfers.json"
@@ -94,23 +95,39 @@ class TransferRequest:
     def __str__(self):
         return json.dumps(self.to_json())
 
-def is_valid_iban(iban):
-    """ Checks if IBAN is valid"""
-    return iban.startswith("ES") and (len(iban) == 24) and iban[2:].isdigit()
 
 def transfer_request(from_iban, to_iban, concept, transfer_type, date, amount):
-    """Processes the transfer request and if all inputs are valid and the request is not a duplicate, creates an
-    instance of the TransferRequest class and stores transaction"""
+    """
+        Processes a transfer request by validating input fields and storing the transaction if it is not a duplicate.
+
+        This function validates the IBANs, concept string, transfer type, transfer date, and amount.
+        If all validations pass and the request does not already exist (based on a unique transfer code),
+        it creates an instance of the `TransferRequest` class and saves it to a JSON file.
+
+        Args:
+            from_iban (str): Sender's IBAN. Must be a valid IBAN string.
+            to_iban (str): Recipient's IBAN. Must be a valid IBAN string.
+            concept (str): Description of the transfer. Must be 10–30 characters and contain at least two words.
+            transfer_type (str): Type of transfer. Must be one of "ORDINARY", "URGENT", or "IMMEDIATE".
+            date (str): Transfer date in "DD/MM/YYYY" format. Must be today or a future date between 2025 and 2050.
+            amount (float): Transfer amount. Must be between 10.00 and 10,000.00 inclusive, with up to two decimal places.
+
+        Returns:
+            str: A string containing the unique transfer code for the new transaction.
+
+        Raises:
+            AccountManagementException: If any input is invalid, improperly formatted, or if the transfer is a duplicate.
+        """
 
     #Check from_iban
     if not isinstance(from_iban, str):
         raise AccountManagementException("From_iban must be a string")
-    if not is_valid_iban(from_iban):
+    if not AccountManager.validate_iban(from_iban):
         raise AccountManagementException("From IBAN is not valid")
     #Check to_iban
     if not isinstance(to_iban, str):
         raise AccountManagementException("To_iban must be a string")
-    if not is_valid_iban(to_iban):
+    if not AccountManager.validate_iban(to_iban):
         raise AccountManagementException("To IBAN is not valid")
     #check_concept
     if not isinstance(concept, str):
@@ -167,7 +184,7 @@ def transfer_request(from_iban, to_iban, concept, transfer_type, date, amount):
         if t["transfer_code"] == transfer_req.transfer_code:
             raise AccountManagementException("Transfer already exists")
 
-    with open(path, 'w', encoding='utf-8'):
-        json.dumps(transactions + [transfer_req.to_json()], indent=4)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dumps(transactions + [transfer_req.to_json()], f, indent=4) # type: ignore
 
     return f"Transfer Code: {transfer_req.transfer_code}"
