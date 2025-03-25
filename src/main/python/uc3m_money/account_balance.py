@@ -28,7 +28,7 @@ def calculate_balance(iban_number):
         raise AccountManagementException("IBAN is not valid")
 
     # Define file paths
-    transactions_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "past_transactions.json"))
+    transactions_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "transactions.json"))
     balances_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "balances.json"))
 
     # Check if transactions.json exists
