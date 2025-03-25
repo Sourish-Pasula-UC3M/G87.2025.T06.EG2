@@ -3,7 +3,7 @@ import json
 import re
 import os
 from datetime import datetime, timezone
-from account_management_exception import AccountManagementException
+import account_management_exception
 from account_manager import AccountManager
 
 class TransferRequest:
@@ -121,7 +121,7 @@ def transfer_request(from_iban, to_iban, concept, transfer_type, date, amount):
 
     #Check from_iban
     if not isinstance(from_iban, str):
-        raise AccountManagementException("From_iban must be a string")
+        raise account_management_exception.AccountManagementException("From_iban must be a string")
     if not AccountManager.validate_iban(from_iban):
         raise AccountManagementException("From IBAN is not valid")
     #Check to_iban
