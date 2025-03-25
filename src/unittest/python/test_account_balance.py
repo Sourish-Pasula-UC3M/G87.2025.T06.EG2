@@ -5,7 +5,7 @@ class TestCalculateBalance(unittest.TestCase):
 
     def test_valid_iban_and_transactions(self):
         # TC1
-        self.assertTrue(calculate_balance("ES9121000418450200051332"))
+        self.assertTrue(calculate_balance("ES8658342044541216872704"))
 
     def test_valid_iban_processing_error(self):
         # TC2
@@ -20,7 +20,7 @@ class TestCalculateBalance(unittest.TestCase):
     def test_valid_iban_not_found(self):
         # TC4
         with self.assertRaises(AccountManagementException):
-            calculate_balance("ES4221004520611234567891")
+            calculate_balance("ES9121000418450200051065")
 
     def test_valid_iban_sum_error(self):
         # TC5
@@ -33,7 +33,7 @@ class TestCalculateBalance(unittest.TestCase):
 
     def test_valid_iban_large_amounts(self):
         # TC7
-        self.assertTrue(calculate_balance("ES8121000418450200051332"))
+        self.assertTrue(calculate_balance("ES3559005439021242088295"))
 
 if __name__ == "__main__":
     unittest.main()
