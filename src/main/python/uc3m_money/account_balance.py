@@ -2,7 +2,7 @@
 import json
 import os
 from datetime import date
-from src.main.python.uc3m_money import AccountManagementException
+from uc3m_money.account_management_exception import AccountManagementException
 
 def validate_iban(iban):
     """

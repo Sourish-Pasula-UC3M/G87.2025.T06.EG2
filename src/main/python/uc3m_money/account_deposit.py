@@ -2,8 +2,8 @@
 from datetime import datetime, timezone
 import json
 import os
-from account_management_exception import AccountManagementException
-from account_manager import AccountManager
+from uc3m_money.account_management_exception import AccountManagementException
+from uc3m_money.account_manager import AccountManager
 import hashlib
 
 class AccountDeposit:

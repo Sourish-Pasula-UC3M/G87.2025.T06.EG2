@@ -1,0 +1,62 @@
+[
+    {
+        "from_iban": "ES9121000418450200051332",
+        "to_iban": "ES9121000418450200051332",
+        "transfer_concept": "text valid",
+        "transfer_type": "ORDINARY",
+        "transfer_date": "01/01/2026",
+        "transfer_amount": 10.0,
+        "time_stamp": 1742937370.677054,
+        "transfer_code": "bbfcb719f45f81712a5b68946912f942"
+    },
+    {
+        "from_iban": "ES9121000418450200051332",
+        "to_iban": "ES9121000418450200051332",
+        "transfer_concept": "text is valid",
+        "transfer_type": "URGENT",
+        "transfer_date": "02/02/2049",
+        "transfer_amount": 10.01,
+        "time_stamp": 1742937370.705335,
+        "transfer_code": "3930edbc1bc445a07e8ccf8803e605df"
+    },
+    {
+        "from_iban": "ES9121000418450200051332",
+        "to_iban": "ES9121000418450200051332",
+        "transfer_concept": "text validd",
+        "transfer_type": "ORDINARY",
+        "transfer_date": "01/01/2026",
+        "transfer_amount": 10.0,
+        "time_stamp": 1742937370.720702,
+        "transfer_code": "04324ab0cc91944ef0834696d9beb392"
+    },
+    {
+        "from_iban": "ES9121000418450200051332",
+        "to_iban": "ES9121000418450200051332",
+        "transfer_concept": "text validdddddddddddddddddd",
+        "transfer_type": "IMMEDIATE",
+        "transfer_date": "30/11/2025",
+        "transfer_amount": 9999.99,
+        "time_stamp": 1742937370.723542,
+        "transfer_code": "b870020a1a3005748c7f3154c1cc9e52"
+    },
+    {
+        "from_iban": "ES9121000418450200051332",
+        "to_iban": "ES9121000418450200051332",
+        "transfer_concept": "text validddddddddddddddddddd",
+        "transfer_type": "ORDINARY",
+        "transfer_date": "31/12/2050",
+        "transfer_amount": 10000.0,
+        "time_stamp": 1742937370.726098,
+        "transfer_code": "e841b97388eadb4e4c3e0bf7ce41127d"
+    },
+    {
+        "from_iban": "ES9121000418450200051332",
+        "to_iban": "ES9121000418450200051332",
+        "transfer_concept": "text validddddddddddddddddddd",
+        "transfer_type": "ORDINARY",
+        "transfer_date": "31/12/2050",
+        "transfer_amount": 15.2,
+        "time_stamp": 1742937370.72878,
+        "transfer_code": "a175d36342de7f46d3d0c64748a7728c"
+    }
+]
