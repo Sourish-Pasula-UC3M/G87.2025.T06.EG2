@@ -4,7 +4,8 @@ import re
 import os
 from datetime import datetime, timezone
 import account_management_exception
-from account_manager import AccountManager
+from src.main.python.uc3m_money.account_manager.py import AccountManager
+# pylint: disable=import_error
 
 class TransferRequest:
     TRANSFER_FILE = "transfers.json"
