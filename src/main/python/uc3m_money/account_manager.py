@@ -1,6 +1,6 @@
 """Module """
 
-class AccountManager:
+class AccountManager: # pylint: disable=too-few-public-methods
     """Class for providing the methods for managing the orders"""
     def __init__(self):
         pass
