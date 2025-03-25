@@ -2,84 +2,84 @@
 import json
 import os
 from datetime import date
-from src.main.python.uc3m_money import AccountManagementException
+from uc3m_money.account_management_exception import AccountManagementException
+from uc3m_money.account_manager import AccountManager
 
-def validate_iban(iban):
-    """
-        Validates the format of a Spanish IBAN.
-        An IBAN is considered valid if it starts with 'ES', has a total length of 24 characters,
-        and the characters after 'ES' are all digits.
 
-        Args:
-            iban (str): The IBAN string to validate.
-        Returns:
-            bool: True if the IBAN is valid, False otherwise.
-        """
-    if iban.startswith("ES") and len(iban) == 24 and iban[2:].isdigit():
-        return True
-    return False
 def calculate_balance(iban_number):
     """
-        This function, validates the provided IBAN, reads transactions and filters them by the given IBAN, sums the
-        transaction amounts for that IBAN, creates a balance entry with today's date, and appends the balance
-        to 'balances.json'.
+    Validates the IBAN, sums all transactions for it from 'transactions.json',
+    and appends the balance to 'balances.json' (if amount ≠ 0).
 
-        Args:
-            iban_number (str): The IBAN number for which the balance is calculated.
-        Raises:
-            AccountManagementException: If the IBAN is invalid or required files are missing.
-        Returns:
-            bool: True if the balance was successfully calculated and recorded.
-        """
+    Args:
+        iban_number (str): The IBAN number for which the balance is calculated.
 
+    Returns:
+        bool: True if the balance was successfully calculated and (if non-zero) recorded.
+
+    Raises:
+        AccountManagementException: If the IBAN is invalid or files are missing/corrupt.
+    """
+
+    # Validate IBAN
     if not isinstance(iban_number, str):
-        raise AccountManagementException("Iban is in invalid format")
-    if not validate_iban(iban_number):
-        raise AccountManagementException("Iban is not valid")
+        raise AccountManagementException("IBAN must be a string")
+    if not AccountManager.validate_iban(iban_number):
+        raise AccountManagementException("IBAN is not valid")
 
-    def file_path_found():
-        path = os.path.join(os.path.dirname(__file__), "..", "..", "transactions.json")
+    # Define file paths
+    transactions_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "transactions.json"))
+    balances_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "balances.json"))
 
-        absolute_path = os.path.abspath(path)
-        if os.path.exists(path) is not True:
-            raise AccountManagementException(f"Transactions file not found at: {absolute_path}")
+    # Check if transactions.json exists
+    if not os.path.exists(transactions_path):
+        raise AccountManagementException("Transactions file not found")
 
-        with open(path, "r", encoding="utf-8") as file:
-            data = json.load(file)
+    # Load transactions
+    try:
+        with open(transactions_path, "r", encoding="utf-8") as file:
+            transactions_data = json.load(file)
+            if not isinstance(transactions_data, list):
+                raise AccountManagementException("Transactions file format is invalid")
+    except json.JSONDecodeError:
+        raise AccountManagementException("Transactions file is empty or corrupted")
 
-        for key in data:
-            if key["IBAN"] == iban_number:
-                return True
-        return False
+    # Filter and sum amounts
+    amount = 0.0
+    for transaction in transactions_data:
+        if transaction.get("IBAN") == iban_number:
+            try:
+                amount += float(transaction.get("amount", 0))
+            except ValueError:
+                raise AccountManagementException("Amount format in transactions file is invalid")
 
-    file_path_found()
+    # Return True but don't write if no transactions were found
+    if amount == 0.0:
+        return True
 
-    file_path = os.path.join(os.path.dirname(__file__), "..", "..", "transactions.json")
-    with open(file_path, "r", encoding="utf-8") as file:
-        file_data = json.load(file)
-
-    amount = 0
-    for i in file_data:
-        if i["IBAN"] == iban_number:
-            amount += float(i["amount"])
-
-    balance = {
+    # Prepare balance entry
+    balance_entry = {
         "iban": iban_number,
         "amount": amount,
         "date": date.today().isoformat()
     }
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "..", "balances.json")
-    if not os.path.exists(output_path):
-        raise AccountManagementException("JSON file does not exist")
+    # Check if balances.json exists
+    if not os.path.exists(balances_path):
+        raise AccountManagementException("Balances file not found")
 
-    with open(output_path, "r", encoding="utf-8") as file:
-        output_data = json.load(file)
+    # Load balances data
+    try:
+        with open(balances_path, "r", encoding="utf-8") as f:
+            balances_data = json.load(f)
+            if not isinstance(balances_data, list):
+                raise AccountManagementException("Balances file format is invalid")
+    except json.JSONDecodeError:
+        raise AccountManagementException("Balances file is empty or corrupted")
 
-    output_data.append(balance)
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(output_data, f, indent=4)  # type: ignore
+    # Append new balance and save
+    balances_data.append(balance_entry)
+    with open(balances_path, "w", encoding="utf-8") as f:
+        json.dump(balances_data, f, indent=4)
 
     return True
-

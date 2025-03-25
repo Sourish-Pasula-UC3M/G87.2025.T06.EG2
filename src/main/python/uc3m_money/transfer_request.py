@@ -3,13 +3,12 @@ import json
 import re
 import os
 from datetime import datetime, timezone
-# pylint: disable=import-error
-from account_manager import AccountManager
-from account_management_exception import AccountManagementException
+from uc3m_money.account_management_exception import AccountManagementException
+from uc3m_money.account_manager import AccountManager
 
 
 class TransferRequest:
-    TRANSFER_FILE = "transfers.json"
+    TRANSFER_FILE = "past_transactions.json"
 
     def __init__(self, from_iban: str, to_iban: str, transfer_concept: str,
                  transfer_type: str, transfer_date: str, transfer_amount: float):
@@ -24,152 +23,89 @@ class TransferRequest:
 
     def generate_transfer_code(self):
         """Returns the MD5 signature of the transfer."""
-        return hashlib.md5(str(self).encode()).hexdigest()
+        transfer_data = f"{self.from_iban}{self.to_iban}{self.transfer_concept}" \
+                        f"{self.transfer_type}{self.transfer_date}{self.transfer_amount}"
+        return hashlib.md5(transfer_data.encode()).hexdigest()
 
     def to_json(self):
         return {
-            "from_iban": self.__from_iban,
-            "to_iban": self.__to_iban,
-            "transfer_concept": self.__transfer_concept,
-            "transfer_type": self.__transfer_type,
-            "transfer_date": self.__transfer_date,
-            "transfer_amount": self.__transfer_amount,
+            "from_iban": self.from_iban,
+            "to_iban": self.to_iban,
+            "transfer_concept": self.transfer_concept,
+            "transfer_type": self.transfer_type,
+            "transfer_date": self.transfer_date,
+            "transfer_amount": self.transfer_amount,
             "time_stamp": self.__time_stamp,
             "transfer_code": self.__transfer_code
         }
-
-    @property
-    def from_iban(self):
-        return self.__from_iban
-
-    @from_iban.setter
-    def from_iban(self, value):
-        self.__from_iban = value
-
-    @property
-    def to_iban(self):
-        return self.__to_iban
-
-    @to_iban.setter
-    def to_iban(self, value):
-        self.__to_iban = value
-
-    @property
-    def transfer_concept(self):
-        return self.__transfer_concept
-
-    @transfer_concept.setter
-    def transfer_concept(self, value):
-        self.__transfer_concept = value
-
-    @property
-    def transfer_type(self):
-        return self.__transfer_type
-
-    @transfer_type.setter
-    def transfer_type(self, value):
-        self.__transfer_type = value
-
-    @property
-    def transfer_date(self):
-        return self.__transfer_date
-
-    @transfer_date.setter
-    def transfer_date(self, value):
-        self.__transfer_date = value
-
-    @property
-    def transfer_amount(self):
-        return self.__transfer_amount
-
-    @transfer_amount.setter
-    def transfer_amount(self, value):
-        self.__transfer_amount = value
-
-    @property
-    def time_stamp(self):
-        return self.__time_stamp
 
     @property
     def transfer_code(self):
         return self.__transfer_code
 
     def __str__(self):
-        return json.dumps(self.to_json())
+        return json.dumps(self.to_json(), indent=4)
 
 
 def transfer_request(from_iban, to_iban, concept, transfer_type, date, amount):
     """
-        Processes a transfer request by validating input fields and storing the transaction if it is not a duplicate.
-
-        This function validates the IBANs, concept string, transfer type, transfer date, and amount.
-        If all validations pass and the request does not already exist (based on a unique transfer code),
-        it creates an instance of the `TransferRequest` class and saves it to a JSON file.
-
-        Args:
-            from_iban (str): Sender's IBAN. Must be a valid IBAN string.
-            to_iban (str): Recipient's IBAN. Must be a valid IBAN string.
-            concept (str): Description of the transfer. Must be 10–30 characters and contain at least two words.
-            transfer_type (str): Type of transfer. Must be one of "ORDINARY", "URGENT", or "IMMEDIATE".
-            date (str): Transfer date in "DD/MM/YYYY" format. Must be today or a future date between 2025 and 2050.
-            amount (float): Transfer amount. Must be between 10.00 and 10,000.00 inclusive, with up to two decimal places.
-
-        Returns:
-            str: A string containing the unique transfer code for the new transaction.
-
-        Raises:
-            AccountManagementException: If any input is invalid, improperly formatted, or if the transfer is a duplicate.
-        """
-
-    #Check from_iban
+    Processes a transfer request by validating input fields and storing the transaction if it is not a duplicate.
+    """
     if not isinstance(from_iban, str):
-        raise AccountManagementException("From_iban must be a string")
+        raise AccountManagementException("from_iban must be a string")
     if not AccountManager.validate_iban(from_iban):
         raise AccountManagementException("From IBAN is not valid")
-    #Check to_iban
+
     if not isinstance(to_iban, str):
-        raise AccountManagementException("To_iban must be a string")
+        raise AccountManagementException("to_iban must be a string")
     if not AccountManager.validate_iban(to_iban):
         raise AccountManagementException("To IBAN is not valid")
-    #check_concept
+
+    # Validate concept
     if not isinstance(concept, str):
         raise AccountManagementException("Concept must be a string")
-    if not (10 <= len(concept) <= 30 and re.search(r"[a-zA-Z]+\s+[a-zA-Z]+", concept)):
+
+    # Must be 10-30 characters and contain at least two words
+    if not (10 <= len(concept) <= 30 and re.search(r"\b\w+\b.*\b\w+\b", concept)):
         raise AccountManagementException("Invalid concept. Must be 10-30 chars with at least two words.")
 
-    #check transfer_type
+    # Must not contain special characters
+    if not re.fullmatch(r"[a-zA-Z0-9 ]+", concept):
+        raise AccountManagementException("Concept must not contain special characters.")
+
     if not isinstance(transfer_type, str):
-        raise AccountManagementException("Transfer_type must be a string")
+        raise AccountManagementException("transfer_type must be a string")
     valid_types = {"ORDINARY", "URGENT", "IMMEDIATE"}
     if transfer_type not in valid_types:
         raise AccountManagementException(f"Invalid transfer type: {transfer_type}.")
 
-    #check date
-    if not isinstance(date,str):
+    if not isinstance(date, str):
         raise AccountManagementException("Date must be a string")
+
+    # Check date format explicitly using regex (must be DD/MM/YYYY with two digits for DD and MM)
+    if not re.fullmatch(r"\d{2}/\d{2}/\d{4}", date):
+        raise AccountManagementException("Invalid date format. Must be DD/MM/YYYY with two-digit day and month.")
+
     try:
         date_obj = datetime.strptime(date, "%d/%m/%Y")
-        if date_obj.year < 2025 or date_obj.year >= 2051:
+        if not (2025 <= date_obj.year <= 2050):
             raise AccountManagementException("Year must be between 2025 and 2050.")
         if date_obj.date() < datetime.now().date():
             raise AccountManagementException("Transfer date must be today or in the future.")
     except ValueError as exc:
-        raise AccountManagementException("Invalid date format. Must be DD/MM/YYYY.") from exc
+        raise AccountManagementException("Invalid date. Must be a valid calendar date.") from exc
 
-    #check amount
     if not isinstance(amount, float):
         raise AccountManagementException("Amount must be a float")
-    if len(str(amount).rsplit('.', maxsplit=1)[-1]) > 2:
-        raise AccountManagementException("Amount must be between 10.00 and 10000.00 with max 2 decimals.")
-    if not 10.00 <= float(amount) <= 10000.00:
-        raise AccountManagementException("Amount is not within range")
+    if len(str(amount).split('.')[-1]) > 2:
+        raise AccountManagementException("Amount must have up to two decimal places.")
+    if not 10.00 <= amount <= 10000.00:
+        raise AccountManagementException("Amount is not within the allowed range (10.00 to 10000.00).")
 
+    transfer_req = TransferRequest(from_iban, to_iban, concept, transfer_type, date, amount)
 
-    #Create an instance of the TransferRequest class
-    transfer_req = TransferRequest(from_iban, transfer_type, to_iban, concept, date, amount)
-
-    directory = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    path = os.path.join(directory, "transactions.json")
+    directory = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(directory, TransferRequest.TRANSFER_FILE)
 
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
@@ -183,10 +119,11 @@ def transfer_request(from_iban, to_iban, concept, transfer_type, date, amount):
         transactions = []
 
     for t in transactions:
-        if t["transfer_code"] == transfer_req.transfer_code:
+        if t.get("transfer_code") == transfer_req.transfer_code:
             raise AccountManagementException("Transfer already exists")
 
+    transactions.append(transfer_req.to_json())
     with open(path, 'w', encoding='utf-8') as f:
-        json.dumps(transactions + [transfer_req.to_json()], f, indent=4) # type: ignore
+        json.dump(transactions, f, indent=4)
 
-    return f"Transfer Code: {transfer_req.transfer_code}"
+    return transfer_req.transfer_code
