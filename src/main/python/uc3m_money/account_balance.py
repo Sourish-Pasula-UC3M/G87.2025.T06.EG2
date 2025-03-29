@@ -48,15 +48,12 @@ def calculate_balance(iban_number):
     amount = 0.0
     found = False
     for transaction in transactions_data:
-        print(transaction)
         if transaction.get("IBAN") == iban_number:
             found = True
             try:
                 amount += float(transaction.get("amount"))
             except ValueError:
                 raise AccountManagementException("Amount format in transactions file is invalid")
-    if not found:
-        raise AccountManagementException("No transactions for this IBAN")
 
     # Return True but don't write if no transactions were found
 

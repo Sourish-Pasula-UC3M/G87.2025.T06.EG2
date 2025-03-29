@@ -134,5 +134,13 @@
         "deposit_amount": 2500.0,
         "deposit_date": 1742943360.764616,
         "deposit_signature": "96783f9bf29d467b11924ad13206cf085f8caa0f18a8b15290234a967a000d6f"
+    },
+    {
+        "alg": "SHA-256",
+        "type": "DEPOSIT",
+        "to_iban": "ES9121000418450200051332",
+        "deposit_amount": 2500.0,
+        "deposit_date": 1742943831.736997,
+        "deposit_signature": "7f8e8a3918c3a1530ecc56645dcc20c0a00134d34559b8b4b2b9cab1f1ae106d"
     }
 ]
